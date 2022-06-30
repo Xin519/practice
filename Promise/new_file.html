@@ -1,0 +1,1683 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@ page language="java" pageEncoding="UTF-8"%>
+<%@ taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
+
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]-->
+<!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]-->
+<!--[if !IE]><!-->
+<html lang="en">
+	<!--<![endif]-->
+	<!-- BEGIN HEAD -->
+	<link href="js/echarts/css/index.css" rel="stylesheet" />
+	<link href="js/echarts/css/indexBackColor.css" rel="stylesheet" />
+	<link href="js/echarts/css/indexModal.css" rel="stylesheet" />
+	<script src="js/assets/global/plugins/jquery.min.js" type="text/javascript"></script>
+	<script type="text/javascript" src="js/assets/admin/layout/scripts/topMenu.js"></script>
+	<script>
+		var Drag = {
+			constructor: function(id, ids) {
+				this.oDiv = document.querySelector(id);
+				this.oDom = document.querySelector(ids);
+				this.disX = 0;
+				this.disY = 0;
+				this.init();
+			},
+			init: function() {
+				this.oDom.onmousedown = function(ev) {
+					this.disX = ev.clientX - this.oDiv.offsetLeft;
+					this.disY = ev.clientY - this.oDiv.offsetTop;
+					document.onmousemove = this.fnMove.bind(this);
+					document.onmouseup = this.fnUp.bind(this);
+					return false;
+				}.bind(this);
+			},
+			fnMove: function(ev) {
+				this.oDiv.style.left = ev.clientX - this.disX + 'px';
+				this.oDiv.style.top = ev.clientY - this.disY + 'px';
+				this.iwindowDom = window.top.document.getElementById("nav").contentWindow.$('#iframes');
+				this.maxWidth = this.iwindowDom.width() - this.oDiv.clientWidth;
+				this.maxHeight = this.iwindowDom.height() - this.oDiv.clientHeight;
+				this.listNavsh = $('.listNavs').height() + $('.listPosition').height() + 1
+				if (this.oDiv.offsetLeft <= 0) {
+					this.oDiv.style.left = 0
+				}
+				if (this.oDiv.offsetLeft >= this.maxWidth) {
+					this.oDiv.style.left = this.maxWidth + 'px'
+				}
+				if (this.oDiv.offsetTop <= this.listNavsh) {
+					this.oDiv.style.top = this.listNavsh + 'px'
+				}
+				if (this.oDiv.offsetTop >= this.maxHeight) {
+					this.oDiv.style.top = this.maxHeight + 'px'
+				}
+			},
+			fnUp: function() {
+				document.onmousedown = null;
+				document.onmousemove = null;
+			}
+
+		}
+
+		function JCsearchSwitch(num) {
+			if (num == 1) {
+				$('#JCsearch').show();
+				$('.searchsRight').attr('onclick', 'JCsearchSwitch(2)');
+			} else {
+				$('#JCsearch').hide();
+				$('.searchsRight').attr('onclick', 'JCsearchSwitch(1)');
+			}
+		}
+
+
+		function choiceBom(obj) {
+			//var cls = $(obj).attr('class');
+			//if(cls.indexOf('colorBom') > -1){
+			//$(obj).removeClass('colorBom');
+			//}else{
+			$(obj).addClass('colorBom').siblings().removeClass('colorBom');
+			//}	
+		}
+
+		function unfoldRetract() {
+			var rows = $('.mainTables').parents('.row');
+			var leftNavs = rows.find('.leftNav');
+			var buts = $('.unfoldRetracts');
+			var listPositions = $('.listPosition');
+			if (leftNavs.attr('unfoldRetract') == '0') {
+				leftNavs.find('dl').hide();
+				leftNavs.css('width', 30);
+				rows.css('padding-left', 30);
+				leftNavs.attr('unfoldRetract', '1');
+				buts.css({
+					'transform': 'rotate(180deg)',
+					'right': 0
+				});
+				$('#leftClicks').css('left', 0);
+				listPositions.css('padding-left', 30);
+				$('.leftNavTles').hide();
+			} else {
+				var widths = Number(leftNavs.attr('widths'));
+				leftNavs.find('dl').show();
+				leftNavs.css('width', widths);
+				rows.css('padding-left', widths);
+				leftNavs.attr('unfoldRetract', '0');
+				buts.css({
+					'transform': 'rotate(0)',
+					'right': '-11px'
+				});
+				$('#leftClicks').css('left', widths);
+				listPositions.css('padding-left', widths);
+				$('.leftNavTles').show();
+			}
+
+		}
+
+		function refreshFun(obj) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var ifDom = iwindow.$('#iframes iframe');
+			ifDom.each(function() {
+				var attrBlurs = $(this).attr('blurs');
+				if (attrBlurs == '0') {
+					var srcs = $(this).attr('src');
+					$(this).attr('src', srcs);
+				}
+			})
+		}
+
+		function goBackHome() {
+			window.top.location = "user/welcomeIndex?back=1";
+		}
+
+		function iframeFuns1(obj) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var dom = iwindow.$('#iframes');
+			//	var dom = parent.$('#iframes');
+			//console.log('--------------------------',dom.html())
+			var pdBlur = true;
+			var objInx = $(obj).index() - 1;
+			var href = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx).find('dl').eq(0).find('a').attr('hrefs');
+			if (href == undefined) {
+				href = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx).find('dl').eq(0).find('dl').eq(0).find(
+					'a').attr('hrefs');
+			}
+
+			dom.find('iframe').each(function() {
+				//判断是否是包含tab
+				if (href.indexOf('sjdgbgspIndex') != -1) {
+					href = href.split('?')[0];
+				}
+				if (href == $(this).attr('src') && pdBlur) {
+					pdBlur = false;
+					var _this = $(this);
+					$('#switchs li').each(function() {
+						var jq = $(this).attr('obj');
+						if (jq == _this.attr('name')) {
+							$(this).addClass('liBack').siblings('li').removeClass('liBack');
+							var html = $(this).parent('ul').html();
+							var child = iwindow.document.getElementById(jq).contentWindow;
+							child.document.getElementById('switchs').innerHTML = html;
+						}
+					})
+					$(this).show().attr('blurs', '0').siblings('iframe').hide().attr('blurs', '1');
+				}
+			})
+			if (pdBlur) {
+				var consDom = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx);
+				var navs = consDom.find('.dles').html();
+				localStorage.setItem('leftNav', navs);
+				localStorage.setItem('leftNavTle', $(obj).text());
+				var len = dom.find('iframe').length + 1;
+				var floDom = consDom.find('.consDl').eq(0).find('.flo');
+				var tle;
+				if (floDom.length == 0) {
+					tle = consDom.find('dl').eq(0).find('dd').text();
+				} else {
+					tle = consDom.find('.consDl').eq(0).find('.consDl2').eq(0).find('dd').text();
+				}
+
+				dom.find('iframe').attr('blurs', '1').hide();
+				var html = '<iframe name="iframe' + len + '" id="iframe' + len + '" scrolling="auto"' +
+					'src="' + href + '" tle="' + tle +
+					'" blurs="0" leftNav="1" frameborder="0" marginheight="0" width="100%" height="100%"' +
+					'marginwidth="0">' +
+					'</iframe>';
+				dom.append(html);
+			}
+		}
+
+		function iframeFuns11(obj, bmmc) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var dom = iwindow.$('#iframes');
+			//	var dom = parent.$('#iframes');
+			//console.log('--------------------------',dom.html())
+			var pdBlur = true;
+			var objInx = $(obj).index() - 1;
+
+			var href = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx).find('dl').eq(0).find('a').attr('hrefs');
+			if (href == undefined) {
+				href = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx).find('dl').eq(0).find('dl').eq(0).find(
+					'a').attr('hrefs');
+			}
+			href = href + "?bmmc=" + bmmc;
+			dom.find('iframe').each(function() {
+				//判断是否是包含tab
+				if (href.indexOf('sjdgbgspIndex') != -1) {
+					href = href.split('?')[0];
+				}
+				if (href == $(this).attr('src') && pdBlur) {
+					pdBlur = false;
+					var _this = $(this);
+					$('#switchs li').each(function() {
+						var jq = $(this).attr('obj');
+						if (jq == _this.attr('name')) {
+							$(this).addClass('liBack').siblings('li').removeClass('liBack');
+							var html = $(this).parent('ul').html();
+							var child = iwindow.document.getElementById(jq).contentWindow;
+							child.document.getElementById('switchs').innerHTML = html;
+						}
+					})
+					$(this).show().attr('blurs', '0').siblings('iframe').hide().attr('blurs', '1');
+				}
+			})
+			if (pdBlur) {
+				var navs = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx).find('.dles').html();
+				localStorage.setItem('leftNav', navs);
+				localStorage.setItem('leftNavTle', $(obj).text());
+				var len = dom.find('iframe').length + 1;
+				var tle = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx).find('dl').eq(0).find('dd').text();
+				dom.find('iframe').attr('blurs', '1').hide();
+				var html = '<iframe name="iframe' + len + '" id="iframe' + len + '" scrolling="auto"' +
+					'src="' + href + '" tle="' + tle +
+					'" blurs="0" leftNav="1" frameborder="0" marginheight="0" width="100%" height="100%"' +
+					'marginwidth="0">' +
+					'</iframe>';
+				dom.append(html);
+			}
+		}
+
+		function iframeFuns2(obj) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var dom = iwindow.$('#iframes');
+			//	var dom = parent.$('#iframes');
+			//console.log('--------------------------',dom.html())
+			var pdBlur = true;
+			var href = $(obj).attr('hrefs');
+			dom.find('iframe').each(function() {
+				//判断是否是包含tab
+				if (href.indexOf('sjdgbgspIndex') != -1) {
+					href = href.split('?')[0];
+				}
+				if (href == $(this).attr('src') && pdBlur) {
+					pdBlur = false;
+					var _this = $(this);
+					$('#switchs li').each(function() {
+						var jq = $(this).attr('obj');
+						if (jq == _this.attr('name')) {
+							$(this).addClass('liBack').siblings('li').removeClass('liBack');
+							var html = $(this).parent('ul').html();
+							var child = iwindow.document.getElementById(jq).contentWindow;
+							child.document.getElementById('switchs').innerHTML = html;
+						}
+					})
+					$(this).show().attr('blurs', '0').siblings('iframe').hide().attr('blurs', '1');
+				}
+			})
+			if (pdBlur) {
+				var navs = $('.leftNav .leftNavs').html();
+				localStorage.setItem('leftNav', navs);
+				var len = dom.find('iframe').length + 1;
+				var tle = $(obj).text();
+				dom.find('iframe').attr('blurs', '1').hide();
+				var html = '<iframe name="iframe' + len + '" id="iframe' + len + '" scrolling="auto"' +
+					'src="' + href + '" tle="' + tle +
+					'" blurs="0" leftNav="1" frameborder="0" marginheight="0" width="100%" height="100%"' +
+					'marginwidth="0">' +
+					'</iframe>';
+				dom.append(html);
+			}
+		}
+
+		function iframeFuns3(obj) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var dom = iwindow.$('#iframes');
+			//	var dom = parent.$('#iframes');
+			//console.log('--------------------------',dom.html())
+			var pdBlur = true;
+			var href = $(obj).attr('hrefs');
+			dom.find('iframe').each(function() {
+				//判断是否是包含tab
+				if (href.indexOf('sjdgbgspIndex') != -1) {
+					href = href.split('?')[0];
+				}
+				if (href == $(this).attr('src') && pdBlur) {
+					pdBlur = false;
+					var _this = $(this);
+					$(this).attr('src', href)
+					$('#switchs li').each(function() {
+						var jq = $(this).attr('obj');
+						if (jq == _this.attr('name')) {
+							$(this).addClass('liBack').siblings('li').removeClass('liBack');
+							var html = $(this).parent('ul').html();
+							var child = iwindow.document.getElementById(jq).contentWindow;
+							child.document.getElementById('switchs').innerHTML = html;
+						}
+					})
+					$(this).show().attr('blurs', '0').siblings('iframe').hide().attr('blurs', '1');
+				}
+			})
+			if (pdBlur) {
+				var objInx = 0
+				var navAttr = $('.listNavs .listNavsFind .mainsRightCon .cons')
+				objInx = forIndex(navAttr, href, 0)
+				var consDom = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(objInx);
+				var navs = consDom.find('.dles').html();
+				localStorage.setItem('leftNav', navs);
+				var tle = $(obj).children('li').text();
+				if (!tle) {
+					tle = $(obj).text();
+				}
+				localStorage.setItem('leftNavTle', $('.listNavs ul li').eq(objInx + 1).text());
+
+				var len = dom.find('iframe').length + 1;
+				dom.find('iframe').attr('blurs', '1').hide();
+				var html = '<iframe name="iframe' + len + '" id="iframe' + len + '" scrolling="auto"' +
+					'src="' + href + '" tle="' + tle +
+					'" blurs="0" leftNav="1" frameborder="0" marginheight="0" width="100%" height="100%"' +
+					'marginwidth="0">' +
+					'</iframe>';
+				dom.append(html);
+			}
+		}
+
+		function forIndex(arr, hrefs, navIndex, index) {
+			var inx = navIndex
+			for (var i = 0; i < arr.length; i++) {
+				var navArray = arr.eq(i).find('.consDl')
+				if (navArray.length > 0) {
+					inx = forIndex(navArray, hrefs, inx, i)
+				}
+				var isHref = arr.eq(i).children('a').attr('hrefs')
+				if (hrefs === isHref) {
+					inx = index
+					if (index == undefined) {
+						return i
+					}
+					return inx
+				}
+			}
+			return inx
+		}
+
+		function iframeFuns22(obj, hrefs, js, bmmc, startYear) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var dom = iwindow.$('#iframes');
+			var pdBlur = true;
+			var href = "";
+
+			if (bmmc == null || bmmc == ' ') {
+				href = hrefs;
+			} else {
+				if (startYear == null || startYear == '') {
+					href = hrefs + "?ff=1&bmmc=" + bmmc;
+				} else {
+					href = hrefs + "?ff=1&bmmc=" + bmmc + "&startYear=" + startYear;
+				}
+			}
+			dom.find('iframe').each(function() {
+				//判断是否是包含tab
+				if (href.indexOf('sjdgbgspIndex') != -1) {
+					href = href.split('?')[0];
+				}
+				console.log(href);
+				console.log($(this).attr('src'))
+				console.log(href == $(this).attr('src'))
+				if (href == $(this).attr('src') && pdBlur) {
+					pdBlur = false;
+					var _this = $(this);
+					$('#switchs li').each(function() {
+						var jq = $(this).attr('obj');
+						if (jq == _this.attr('name')) {
+							$(this).addClass('liBack').siblings('li').removeClass('liBack');
+							var html = $(this).parent('ul').html();
+							var child = iwindow.document.getElementById(jq).contentWindow;
+							child.document.getElementById('switchs').innerHTML = html;
+						}
+					})
+					$(this).show().attr('blurs', '0').siblings('iframe').hide().attr('blurs', '1');
+				}
+			})
+			if (pdBlur) {
+				var tle = "";
+				if ($(obj).text() == "预算编制详情") {
+					tle = "预算编制";
+					localStorage.setItem('leftNavTle', "年度预算");
+				} else if ($(obj).text() == "计划编制详情") {
+					tle = "计划编制";
+					localStorage.setItem('leftNavTle', "年度计划");
+				} else if ($(obj).text() == "预算执行" && hrefs == "yszx/yszxykhjdIndex?dbnYssbTab") {
+					tle = "预算(部处、试点院系)";
+					localStorage.setItem('leftNavTle', "年度预算");
+				} else if ($(obj).text() == "预算执行" && hrefs == "yszxqt/yszxqtIndex?dbnYssbTab") {
+					tle = "预算(院系及其他)";
+					localStorage.setItem('leftNavTle', "年度预算");
+				}
+				var navs = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(js).find('.dles').html();
+				localStorage.setItem('leftNav', navs);
+				var len = dom.find('iframe').length + 1;
+				dom.find('iframe').attr('blurs', '1').hide();
+				var html = '<iframe name="iframe' + len + '" id="iframe' + len + '" scrolling="auto"' +
+					'src="' + href + '" tle="' + tle +
+					'" blurs="0" leftNav="1" frameborder="0" marginheight="0" width="100%" height="100%"' +
+					'marginwidth="0">' +
+					'</iframe>';
+				dom.append(html);
+			}
+		}
+
+		function iframeFunsLink(obj, tle, param) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var dom = iwindow.$('#iframes');
+			//	var dom = parent.$('#iframes');
+			//console.log('--------------------------',dom.html())
+			var pdBlur = true;
+			var href = $(obj).attr('hrefs');
+			dom.find('iframe').each(function() {
+				//判断是否是包含tab
+				if (href.indexOf('sjdgbgspIndex') != -1) {
+					href = href.split('?')[0];
+				}
+				if (href == $(this).attr('src') && pdBlur) {
+					pdBlur = false;
+					var _this = $(this);
+					$('#switchs li').each(function() {
+						var jq = $(this).attr('obj');
+						if (jq == _this.attr('name')) {
+							$(this).addClass('liBack').siblings('li').removeClass('liBack');
+							var html = $(this).parent('ul').html();
+							var child = iwindow.document.getElementById(jq).contentWindow;
+							child.document.getElementById('switchs').innerHTML = html;
+						}
+					})
+					$(this).show().attr('blurs', '0').siblings('iframe').hide().attr('blurs', '1');
+				}
+			})
+			if (pdBlur) {
+				var navs = $('.leftNav .leftNavs').html();
+				localStorage.setItem('leftNav', navs);
+				var len = dom.find('iframe').length + 1;
+				dom.find('iframe').attr('blurs', '1').hide();
+				var html = '<iframe name="iframe' + len + '" id="iframe' + len + '" scrolling="auto"' +
+					'src="' + href + '?' + param + '" tle="' + tle +
+					'" blurs="0" leftNav="1" frameborder="0" marginheight="0" width="100%" height="100%"' +
+					'marginwidth="0">' +
+					'</iframe>';
+				dom.append(html);
+			}
+		}
+
+		function iframeFuns(obj) {
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var dom = iwindow.$('#iframes');
+			//	var dom = parent.$('#iframes');
+			//console.log('--------------------------',dom.html())
+			var pdBlur = true;
+			var href = $(obj).attr('hrefs');
+			dom.find('iframe').each(function() {
+				//判断是否是包含tab
+				if (href.indexOf('sjdgbgspIndex') != -1) {
+					href = href.split('?')[0];
+				}
+				if (href == $(this).attr('src') && pdBlur) {
+					pdBlur = false;
+					var _this = $(this);
+					$('#switchs li').each(function() {
+						var jq = $(this).attr('obj');
+						if (jq == _this.attr('name')) {
+							$(this).addClass('liBack').siblings('li').removeClass('liBack');
+							var html = $(this).parent('ul').html();
+							var child = iwindow.document.getElementById(jq).contentWindow;
+							child.document.getElementById('switchs').innerHTML = html;
+						}
+					})
+					$(this).show().attr('blurs', '0').siblings('iframe').hide().attr('blurs', '1');
+				}
+			})
+			if (pdBlur) {
+				localStorage.setItem('leftNav', '');
+				var len = dom.find('iframe').length + 1;
+				var tle = $(obj).text();
+				dom.find('iframe').attr('blurs', '1').hide();
+				var html = '<iframe name="iframe' + len + '" id="iframe' + len + '" scrolling="auto"' +
+					'src="' + href + '" tle="' + tle +
+					'" blurs="0" leftNav="0" frameborder="0" marginheight="0" width="100%" height="100%"' +
+					'marginwidth="0">' +
+					'</iframe>';
+				dom.append(html);
+			}
+
+		}
+
+		function switchsFun(obj) {
+			$(obj).parent('li').addClass('liBack').siblings('li').removeClass('liBack');
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var ifDom = iwindow.$('#iframes iframe');
+			ifDom.attr('blurs', '1');
+			ifDom.hide();
+			var jq = $(obj).parent('li').attr('obj');
+			var html = $(obj).parent('li').parent('ul').html();
+			var child = iwindow.document.getElementById(jq).contentWindow;
+			child.document.getElementById('switchs').innerHTML = html;
+			child.document.getElementById('hiddenClicks').click()
+			ifDom.each(function() {
+				if ($(this).attr('id') == jq) {
+					$(this).show().attr('blurs', '0');
+				}
+			})
+		}
+
+		function removeTle(obj) {
+			var thisDom = $(obj).parent('li');
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var ifDom = iwindow.$('#iframes iframe');
+			var jq = thisDom.attr('obj');
+			var attrTxt = thisDom.attr('class') + '';
+			if (attrTxt.indexOf('liBack') > -1) {
+				if (thisDom.parent('ul').children('li').length != 1) {
+					var prevs = thisDom.prev();
+					prevs.addClass('liBack').siblings('li').removeClass('liBack');
+					var jq = thisDom.attr('obj');
+					var jqs = thisDom.prev().attr('obj');
+					thisDom.remove();
+					var html = prevs.parent('ul').html();
+					var child = iwindow.document.getElementById(jqs).contentWindow;
+					child.document.getElementById('switchs').innerHTML = html;
+					ifDom.each(function() {
+						if ($(this).attr('id') == jq) {
+							$(this).prev().show();
+							$(this).remove();
+						}
+					})
+				}
+			} else {
+				thisDom.remove()
+				ifDom.each(function() {
+					if ($(this).attr('id') == jq) {
+						$(this).remove();
+					}
+				})
+			}
+
+			var distanceUl = $('#switchs').width();
+			var distanceDiv = $('#switchs').parent('div').parent('div').width();
+			if (distanceUl > distanceDiv) {
+				$('#switchs').parent('div').css('marginLeft', -(distanceUl - distanceDiv + 100));
+			}
+		}
+
+		function leftClick() {
+			var distanceUl = $('#switchs').width();
+			var distanceDiv = $('#switchs').parent('div').parent('div').width();
+			//console.log(distanceUl,'-------------',distanceDiv)
+			if (distanceUl > distanceDiv) {
+				// 500
+				var maLf = parseFloat($('#switchs').parent('div').css('marginLeft'));
+				//console.log(maLf)
+				if (maLf < 0) {
+					if ((maLf * (-1)) > distanceDiv) {
+						$('#switchs').parent('div').css('marginLeft', maLf + 500);
+					} else {
+						$('#switchs').parent('div').css('marginLeft', 0);
+					}
+				}
+			}
+		}
+
+		function rightClick() {
+			var distanceUl = $('#switchs').width();
+			var distanceDiv = $('#switchs').parent('div').parent('div').width();
+			//console.log(distanceUl,'-------------',distanceDiv)
+			if (distanceUl > distanceDiv) {
+				var maLf = parseFloat($('#switchs').parent('div').css('marginLeft'));
+				//console.log(maLf)
+				if ((maLf + distanceDiv) > 500) {
+					$('#switchs').parent('div').css('marginLeft', maLf - 500);
+				}
+			}
+		}
+
+		function bomLeftClick() {
+			var distanceUl = $('#mainTablesNavUl').width();
+			var distanceDiv = $('.mainTablesNav').width();
+			if (distanceUl > distanceDiv) {
+				var maLf = parseFloat($('#mainTablesNavUl').parent('div').css('marginLeft'));
+				if (maLf < 0) {
+					if ((maLf * (-1)) > distanceDiv) {
+						$('#mainTablesNavUl').parent('div').css('marginLeft', maLf + 500);
+					} else {
+						$('#mainTablesNavUl').parent('div').css('marginLeft', 0);
+					}
+				}
+			}
+		}
+
+		function bomRightClick() {
+			var distanceUl = $('#mainTablesNavUl').width();
+			var distanceDiv = $('.mainTablesNav').width();
+			if (distanceUl > distanceDiv) {
+				var maLf = parseFloat($('#mainTablesNavUl').parent('div').css('marginLeft'));
+				if ((maLf + distanceDiv) > 500) {
+					$('#mainTablesNavUl').parent('div').css('marginLeft', maLf - 500);
+				}
+			}
+		}
+
+		function fullScreenFun(obj) {
+			var dom = $(obj).parents('.modal-scrollable').children();
+			var domClass = dom.attr('class');
+			if (domClass.indexOf('fullScreen') > -1) {
+				dom.removeClass('fullScreen');
+			} else {
+				dom.addClass('fullScreen');
+			}
+		}
+		//便利菜单start
+		var lists = [],
+			list1 = [],
+			kjlist2 = [];
+		var html = '',
+			html1 = '',
+			html2 = '';
+
+		function backCls() {
+			var val = localStorage.getItem('color')
+			if (val == null) {
+				val = 'violet'
+			}
+			var list = [{
+				color: 'blue'
+			}, {
+				color: 'violet'
+			}]
+			localStorage.setItem('color', val);
+			var iframes = window.top.document.getElementById("topBody");
+			for (var i = 0; i < list.length; i++) {
+				iframes.classList.remove(list[i].color);
+			}
+			iframes.classList.add(val);
+			var iframe1 = window.top.document.getElementById("nav");
+			var iwindows = iframe1.contentWindow;
+			var ifDoms = iwindows.$('#iframes iframe');
+			ifDoms.each(function() {
+				for (var i = 0; i < list.length; i++) {
+					$(this).contents().find('body').removeClass(list[i].color);
+				}
+				$(this).contents().find('body').addClass(val);
+			})
+		}
+		var valColors = localStorage.getItem('color')
+		if (valColors == null) {
+			valColors = 'violet'
+		}
+
+		$('.row').on('click', '.leftNav .consDl', function() {
+			//$('.consDl').find('.flo').hide(0);
+			$(this).find('.flo').stop(true, false).slideToggle(500);
+
+		})
+
+		$(function() {
+			backCls();
+
+			$('.mainTables .marginBom80').on('mouseenter', '.jqx-widget-header .jqx-grid-column-header', function() {
+				$('#leftPicButs').removeClass('leftPicButs');
+				$(this).find('#leftPicButs').addClass('leftPicButs');
+			})
+
+			$('.mainTables .marginBom80').on('mouseleave', '.jqx-widget-header .jqx-grid-column-header', function() {
+				$(this).find('#leftPicButs').removeClass('leftPicButs');
+			})
+
+			// var fullScreen = '<div style="position: absolute; top:50%; margin-top:-11px; right:35px; color:#547EBB" onclick="fullScreenFun(this)"><span style="font-size:12px" class="glyphicon glyphicon-unchecked" aria-hidden="true"></span></div>';
+			// $('.modal-header button').before(fullScreen);
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var ifDom = iwindow.$('#iframes iframe');
+			var ifDomHtml =
+				'<a href="user/welcomeIndex" target="menuFrame"><li><span class="glyphicon glyphicon-home" style="color:#737272" aria-hidden="true"></span>功能地图</li></a>';
+			var lefts, lefts2;
+			ifDom.each(function() {
+				if ($(this).attr('blurs') == 0) {
+					lefts = $(this).attr('leftNav');
+					lefts2 = $(this).attr('tle');
+					if ($(this).attr('tle') == '首页') {
+						ifDomHtml += '<li obj="' + $(this).attr('name') +
+							'" class="liBack" ><span onclick="switchsFun(this)" style="display:inline-block"> ' +
+							$(this).attr('tle') + ' </span></li>';
+					} else {
+						ifDomHtml += '<li obj="' + $(this).attr('name') +
+							'" class="liBack" ><span onclick="switchsFun(this)" style="display:inline-block"> ' +
+							$(this).attr('tle') +
+							' </span><i onclick="removeTle(this)" class="fa fa-times-circle"></i> </li>';
+					}
+
+				} else {
+					if ($(this).attr('tle') == '首页') {
+						ifDomHtml += '<li obj="' + $(this).attr('name') +
+							'" ><span onclick="switchsFun(this)" style="display:inline-block"> ' + $(this)
+							.attr('tle') + ' </span></li>';
+					} else {
+						ifDomHtml += '<li obj="' + $(this).attr('name') +
+							'" ><span onclick="switchsFun(this)" style="display:inline-block"> ' + $(this)
+							.attr('tle') +
+							' </span><i onclick="removeTle(this)" class="fa fa-times-circle"></i> </li>';
+					}
+
+				}
+
+			})
+			$('#switchs').html(ifDomHtml)
+			var distanceUl = $('#switchs').width();
+			var distanceDiv = $('#switchs').parent('div').parent('div').width();
+			if (distanceUl > distanceDiv) {
+				$('#switchs').parent('div').css('marginLeft', -(distanceUl - distanceDiv + 100));
+			}
+			// switchs
+			$('#switchs').parent('div').parent('div').parent('div').siblings('.listPosition').remove();
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			var user = iwindow.document.getElementById('pageUserid').value;
+			var val = iwindow.$('#iframes #iframe1').attr('val');
+			var _data = {
+				xtmc: val,
+				username: user
+			}
+			$.ajax({
+				cache: false,
+				type: 'POST',
+				url: 'dmgl/getMenuInfo',
+				dataType: "json",
+				contentType: 'application/json',
+				data: JSON.stringify(_data),
+				async: false, //不是异步处理
+				success: function(data) {
+					$.each(data, function(inx, ele) {
+						//if (ele.parent_nood.indexOf('001') > -1) {
+						// console.log(inx,ele)
+						lists.push(ele);
+						//}
+					})
+					//数据分析系统-财务数据分析-自定义菜单添加至lists
+					if (val == "数据分析系统") {
+						$.ajax({
+							cache: false,
+							type: 'POST',
+							url: 'sqlgl/getZdyMenu',
+							dataType: "json",
+							contentType: 'application/json',
+							data: JSON.stringify(_data),
+							async: false, //不是异步处理
+							success: function(data) {
+								if (data.length > 0) {
+									$.each(data, function(inx, ele) {
+										lists.push(ele);
+									})
+								}
+							},
+							error: function(e) {
+								return false;
+							}
+						})
+					}
+
+					$.each(lists, function(inx, ele) {
+						if (ele.jc == 2) {
+							ele.children = []
+							list1.push(ele);
+						}
+					})
+					// 快捷菜单
+					$.each(lists, function(inx, ele) {
+						if (ele.iskj == 1) {
+							ele.children = []
+							kjlist2.push(ele);
+						}
+					})
+					$.each(list1, function(inx, ele) {
+						if (ele.jc == 2 && ele.gnmc == "快捷菜单") {
+							$.each(kjlist2, function(inxs, eles) {
+								if (eles.jc == 3 && eles.iskj == 1) {
+									ele.children.push(eles);
+								}
+							})
+						}
+					})
+					$.each(kjlist2, function(inxs, ele) {
+						$.each(kjlist2, function(inxs, eles) {
+							if (eles.jc == 4 && eles.parent_nood == ele.gnbh) {
+								ele.children.push(eles);
+							}
+						})
+					})
+					// console.log(list1)
+					$.each(lists, function(inx, ele) {
+						if (ele.jc != 2) {
+							$.each(list1, function(inxs, eles) {
+								if (ele.parent_nood.indexOf(eles.gnbh) > -1 && ele.jc ==
+									3 && ele.iskj == 0) {
+									ele.children = []
+									eles.children.push(ele)
+								}
+							})
+						}
+					})
+					// jc = 4 
+					$.each(list1, function(inxs, eles) {
+						if (eles.gnmc != "快捷菜单" && eles.children.length > 0) {
+							eachLists(inxs, eles.children, 4);
+						}
+					})
+					//console.log(list1)
+					html1 +=
+						'<ul><li><a tabindex="-1" onclick="goBackHome()"><div class="pic"><img src="./js/daohang.png" /></div>返回功能地图</a></li>';
+					html2 += '<div class="listNavsFind"><div class="mainsRightCon">';
+					$.each(list1, function(inxs, eles) {
+						if (eles.children.length > 0) {
+							html1 += '<li onclick="iframeFuns1(this)" title="' + eles.gnmc +
+								'"><div class="pic">'
+							if (eles.img == null || eles.img == 'null') {
+								html1 += '<img src="./js/' + valColors + '.png" /></div>' + eles
+									.gnmc + '</li>';
+							} else {
+								html1 += '<img src="data:img/jpg;base64,' + eles.img +
+									'" /></div>' + eles.gnmc + '</li>';
+							}
+							eachHtml(inxs, eles.children);
+						} else {
+							html1 += '<li hrefs="' + eles.gnurl +
+								'" onclick="iframeFuns(this)" title="' + eles.gnmc +
+								'"><div class="pic">'
+							if (eles.img == null || eles.img == 'null') {
+								html1 += '<img src="./js/' + valColors + '.png" /></div>' + eles
+									.gnmc + '</li>';
+							} else {
+								html1 += '<img src="data:img/jpg;base64,' + eles.img +
+									'" /></div>' + eles.gnmc + '</li>';
+							}
+							eachHtml(inxs, []);
+						}
+					})
+					$.each(list1, function(inxs, eles) {
+						if (eles.jc == 3) {
+							if (eles.children.length > 0) {
+
+								html1 += '<li><div class="pic">'
+								if (eles.img == null || eles.img == 'null') {
+									html1 += '<img src="./js/' + valColors + '.png" /></div>' +
+										eles.gnmc + '</li>';
+								} else {
+									html1 += '<img src="data:img/jpg;base64,' + eles.img +
+										'" /></div>' + eles.gnmc + '</li>';
+								}
+							}
+						}
+					})
+
+					html1 += '</ul>';
+					html2 += '</div></div>';
+					html = html1 + html2;
+					$('.listNavs').html(html);
+					var lens2 = $('.listNavs ul li').length;
+					if (lens2 < 10) {
+						var ulWidth = $('.listNavs ul').width();
+						if (ulWidth == 1024) {
+							ulWidth = 115 * lens2;
+						} else if (ulWidth == 1200) {
+							ulWidth = 115 * lens2;
+						} else if (ulWidth == 1280) {
+							ulWidth = 115 * lens2;
+						} else {
+							ulWidth = 115 * lens2;
+						}
+						$('.listNavs ul').width(ulWidth);
+
+					} else if (lens2 > 12) {
+						$('.listNavs ul').width('98%');
+					}
+					var lens1 = 100 / lens2 + '%';
+					$('.listNavs ul li').css({
+						'width': lens1
+					});
+
+					var dom1 = '<div style="" class="shouqi">' +
+						'<span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span>' +
+						'<span class="glyphicon glyphicon-chevron-down" aria-hidden="true" style="display: none;"></span>' +
+						'</div>'
+					$('.listNavs').append(dom1);
+
+					if ($('.mainTablesNav').html() == undefined || $('.mainTablesNav').html() ==
+						'undefined' || $('.mainTablesNav').css('display') == 'none') {
+						var doms =
+							'<div style="display:block;height:18px;padding:0 20px;margin-top:5px;">' +
+							// onclick="refreshFun(this)"
+							'<span class="shuaxin"  style="float: right;font-size:12px;color:#777;text-align:right;margin-left:10px">' +
+							'<span class="glyphicon glyphicon-refresh" aria-hidden="true" style="font-size:12px;"></span>' +
+							' 数据刷新' +
+							'</span>' +
+							'<span class="fullScreen" style="float: right;font-size:12px;color:#777;text-align:right;width:auto!important;margin-left:5px!important">' +
+							'<span class="glyphicon glyphicon-fullscreen" aria-hidden="true" style="font-size:12px;"></span>' +
+							' 全屏展示' +
+							'</span></div>'
+						$('.mainTables').prepend(doms);
+					} else {
+						var doms =
+							'<div style="display:block;height:30px;line-height:30px;width:auto;float:right">' +
+							//onclick="refreshFun(this)"		
+							'<span class="shuaxin"  style="float: right;font-size:12px;color:#777;text-align:right;margin-left:10px">' +
+							'<span class="glyphicon glyphicon-refresh" aria-hidden="true" style="font-size:12px;"></span>' +
+							' 数据刷新' +
+							'</span>' +
+							'<span class="fullScreen" style="float: right;font-size:12px;color:#777;text-align:right;width:auto!important;margin-left:5px!important">' +
+							'<span class="glyphicon glyphicon-fullscreen" aria-hidden="true" style="font-size:12px;"></span>' +
+							' 全屏展示' +
+							'</span>' +
+							'</div>'
+						$('.mainTablesNav').prepend(doms);
+						if ($('.mainTablesNav').height() > 50) {
+							var dom1 = $('.mainTablesNav').html();
+							//	console.log(dom1)
+							$('.mainTablesNav').css('padding', '10px 35px')
+							var dom2 =
+								'<div onclick="bomLeftClick()" class="lfRt" style="left: 0;background:#fff;top:10px;">' +
+								'<i class="fa fa-backward"></i>' +
+								'</div>' +
+								'<div class="" style="width: 10000px; height: 100%; overflow: hidden;">' +
+								'<ul id="mainTablesNavUl" name="" style="">' +
+								dom1 +
+								'</ul>' +
+								'</div>' +
+								'<div onclick="bomRightClick()" id="rigthId" class="lfRt" style="right: 0;background:#fff;top:10px;">' +
+								'<i class="fa fa-forward"></i>' +
+								'</div>';
+							$('.mainTablesNav').html(dom2);
+							$('.modal-header').parent('.modal-content').addClass('modal-15px');
+							$('.table').parents('.modal-content').addClass('modal-15px');
+							$('.table').parents('.modal-body').addClass('modal-15px');
+							$('.table').parents().siblings('.modal-header').addClass('modal-15px');
+						}
+					}
+
+					setTimeout(function() {
+						var navPer = $('.listNavs').parent();
+						navPer.addClass('navpers')
+						// $('.modal.fade.in').css('padding-top',navPer.height())
+						// console.log(div123,';;;;;;;;;;;;;;;;;;')
+						mainHeight();
+						//	console.log($('.mainTablesNav').html())
+						$('.modal-header').parent('.modal-content').addClass('modal-0px');
+						$('.table').parents('.modal-content').addClass('modal-15px');
+						$('.table').parents('.modal-body').addClass('modal-15px');
+						$('.table').parents().siblings('.modal-header').addClass('modal-15px');
+						var leftNav = localStorage.getItem('leftNav');
+						if (lefts == '1') {
+							var ulWidth = $('.listNavs').width();
+							var row = $('.mainTables').parents('.row');
+							var padLeft = 165;
+							if (ulWidth <= 1680) {
+								padLeft = 150;
+							}
+
+							var pdSrc = ''
+							iwindow.$('#iframes iframe').each(function() {
+								var eachBlurs = $(this).attr('blurs')
+								if (eachBlurs == '0') {
+									pdSrc = $(this).attr('src')
+								}
+							})
+							if (pdSrc != localStorage.getItem('leftNavSrc')) {
+								eachLocal($('.listNavs .listNavsFind .cons'), pdSrc, 0)
+							}
+							setTimeout(function() {
+								var tleHtml = '<div class="leftNavTles" style="width:' +
+									padLeft +
+									'px;"><span style="margin-right:10px;" class="glyphicon glyphicon-tasks" aria-hidden="true"></span>' +
+									localStorage.getItem('leftNavTle') + '</div>';
+								var listPositions = $('.listPosition');
+								listPositions.css('padding-left', padLeft + 30).append(
+									tleHtml);
+								$('#leftClicks').css('left', padLeft);
+								lefts = '<div class="leftNav" widths=' + padLeft +
+									' unfoldRetract="0"><div class="unfoldRetracts" onclick="unfoldRetract()"><img src="./js/lfs.png"></div><div class="leftNavs" style="overflow:auto;width:100%;height:100%;padding:0 10px;">' +
+									leftNav + '</div></div>'
+								var hes = $('body').height() - $('.listNavs').height() -
+									$('.listPosition').height();
+								row.css('padding-left', padLeft).css('position',
+										'relative').css('height', hes).addClass('hei84')
+									.append(lefts);
+								row.parent().css('overflow', 'hidden');
+								var leftNavs = $('.leftNav dl')
+								//leftNavs.find().removeClass('dtxz');
+								leftNavs.each(function() {
+									var txts = $(this).find('dd').text().trim();
+									if (txts == lefts2) {
+										$(this).find('dt').addClass('dtxz');
+										$(this).find('dd').addClass('dtxz');
+										$(this).siblings('dl').find('dd')
+											.removeClass('dtxz');
+										$(this).siblings('dl').find('dt')
+											.removeClass('dtxz');
+									}
+								})
+								var floDom = $('.leftNav').find('.consDl').eq(0).find(
+									'.flo');
+								if (floDom.length > 0) {
+									floDom.show();
+									$('.leftNav').find('.consDl').eq(0).children('dd')
+										.attr('onclick', 'findFloShowHide(this,2)');
+									$('.leftNav').find('.consDl').eq(0).children(
+										'.consDlSpans').css('transform',
+										'rotate(180deg)')
+								}
+							}, 100)
+
+
+						}
+
+					}, 200)
+
+					$.each(lists, function(inx, ele) {
+						if (ele.jc == 2 && ele.iskj == 1) {
+							ele.children = []
+							list1.push(ele);
+						}
+					})
+				},
+				error: function(e) {
+					swal({
+						title: "信息获取失败!",
+						type: "error",
+						confirmButtonText: "确定",
+						customClass: "swal-bg",
+						closeOnClickOutside: false,
+						closeOnEsc: false,
+					});
+				}
+
+			})
+
+			function eachLocal(then, srcs, inx) {
+				then.each(function(index, element) {
+					if ($(this).attr('class') == 'cons') {
+						var dom = $(this).children('.dles').children('.consDl')
+						if (dom.length != 0) {
+							eachLocal(dom, srcs, index)
+						}
+					} else {
+						var abx = $(this).children('a');
+						if (abx.length != 0) {
+							var aVal = $(this).children('a').attr('hrefs');
+							if (srcs == aVal) {
+								var dhDomUl = $('.listNavs ul li').eq(inx + 1).attr('title')
+								var dhDomCons = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(inx)
+									.children('.dles').html()
+								localStorage.setItem('leftNavSrc', srcs)
+								localStorage.setItem('leftNavTle', dhDomUl)
+								localStorage.setItem('leftNav', dhDomCons)
+							}
+						} else {
+							var dom = $(this).children('.flo').find('consDl2');
+							eachLocal(dom, srcs, inx)
+						}
+					}
+				})
+			}
+
+			/* $('.mainTablesNav').on('click','.fullScreen',function(){
+				var txt = $(this).text().trim();
+				if(txt == '全屏展示'){
+					$('.listNavs').hide();
+					$('.listPosition').hide();
+					$('.searchs').hide();
+					$('.search').hide();
+					$('.mainTablesNav .fullScreen').html('<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 退出全屏')
+					// $(this).html('<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 退出全屏')
+					var he8 = $('.tab').height();
+					if(he8 == null || he8 == 'null'){
+						he8 = 0
+					}
+					var he7 = $('.tab').height();
+					if(he7 == null || he7 == 'null'){
+						he7 = 0
+					}
+					var hei = $('.bodyOverflow').height() - 45 - he7 - he8;
+					$('.mainTables').height(hei)
+				}else{
+					$('.listNavs').show();
+					$('.listPosition').show();
+					// $('.searchs').show();
+					if($('#searchZk').text().trim() == '关闭搜索'){
+						$('.search').show();
+					}
+					$('.mainTablesNav .fullScreen').html('<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 全屏展示')
+					// $(this).html('<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 全屏展示')
+					mainHeights();
+				}
+			}) */
+			$('body').on('click', '.fullScreen', function() {
+				var txt = $(this).text().trim();
+				if (txt == '全屏展示') {
+					$('.listNavs').hide();
+					$('.listPosition').hide();
+					$('.searchs').hide();
+					$('.search').hide();
+					$(this).html(
+						'<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 退出全屏')
+					// $(this).html('<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 退出全屏')
+					var he8 = $('.tab').height();
+					if (he8 == null || he8 == 'null') {
+						he8 = 0
+					}
+					var he7 = $('.tab').height();
+					if (he7 == null || he7 == 'null') {
+						he7 = 0
+					}
+					var hei = $('.bodyOverflow').height() - 45 - he7 - he8;
+					$('.mainTables').height(hei)
+				} else {
+					$('.listNavs').show();
+					$('.listPosition').show();
+					// $('.searchs').show();
+					if ($('#searchZk').text().trim() == '关闭搜索') {
+						$('.search').show();
+					}
+					$(this).html(
+						'<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 全屏展示')
+					// $(this).html('<span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> 全屏展示')
+					mainHeights();
+				}
+			})
+
+			$('.listNavs').on('click', '.shouqi .glyphicon-chevron-up', function() {
+				var hei = $('.mainTables').height() + $('.listNavs').height()
+				$('.mainTables').height(hei)
+				$('.listNavs ul').hide();
+				$(this).hide();
+				$(this).siblings('span').css({
+					'position': 'absolute',
+					'top': '35px',
+					'right': '-6px'
+				}).show();
+			})
+			$('.listNavs').on('click', '.shouqi .glyphicon-chevron-down', function() {
+				$('.listNavs ul').show();
+				$(this).hide();
+				$(this).siblings('span').show();
+				setTimeout(function() {
+					var hei = $('.mainTables').height() - $('.listNavs').height()
+					$('.mainTables').height(hei)
+				}, 100)
+			})
+
+			/* console.log($('.search').html()); */
+			if ($('#JCsearch').html() != undefined && $('#JCsearch').html() != 'undefined') {
+				$('.listPosition').css('paddingRight', 100);
+				$('#rigthId').css('right', 70);
+				var sousuo =
+					'<div class="searchsRight" style="position: absolute;right:0;top:0;" onclick="JCsearchSwitch(2)">检索条件</div>'
+				$('.listPosition').append(sousuo);
+			} else if ($('.search').html() != undefined && $('.search').html() != 'undefined') {
+				var tabs = $('.search').parent().attr('class');
+				if (tabs.indexOf('tab-pane') > -1) {
+					$('.search').show();
+				} else {
+					$('.listPosition').css('paddingRight', 100);
+					$('#rigthId').css('right', 70);
+					var sousuo =
+						'<div class="searchsRight" style="position: absolute;right:0;top:0;" id="searchZk">展开搜索</div>'
+					$('.listPosition').append(sousuo);
+				}
+			} else if ($('.searchsRight').text().trim() == '高级搜索') {
+				$('.listPosition').css('paddingRight', 100);
+				$('#rigthId').css('right', 70);
+				var sousuo =
+					'<div class="searchsRight" style="position: absolute;right:0;top:0;" data-toggle="modal" data-target="#addModal">高级搜索</div>'
+				$('.listPosition').append(sousuo);
+			}
+			if ($('caption').text().trim() == '可双击行显示项目进度详情') {
+				$('caption').hide();
+			}
+			$('.listPosition').on('click', '#searchZk', function() {
+				if ($(this).text().trim() == '展开搜索') {
+					$(this).text('关闭搜索');
+					$('.search').show();
+					setTimeout(function() {
+						var hei = $('.mainTables').height() - $('.search').height()
+						$('.mainTables').height(hei)
+					}, 100)
+				} else {
+					var hei = $('.mainTables').height() + $('.search').height()
+					$('.mainTables').height(hei)
+					$(this).text('展开搜索');
+					$('.search').hide();
+				}
+			});
+
+			$('.listNavs').on('mouseenter', 'ul li', function() {
+				$(this).addClass('liHover').siblings('li').removeClass('liHover');
+				var _dom = $('.listNavs .listNavsFind');
+				var inx = $(this).index();
+				var hrefs = $(this).attr('hrefs');
+				if (inx != 0 && (hrefs == undefined || hrefs == 'undefined')) {
+					inx = inx - 1
+					//_dom.show();
+					//_dom.find('.cons').eq(inx).show().siblings('.cons').hide();
+					removeFilters();
+				} else {
+					// $('.listNavs ul li').removeClass('liHover');
+					var _dom = $('.listNavs .listNavsFind');
+					_dom.hide().find('.cons').hide();
+					removeFilters();
+				}
+
+			})
+
+			$('.listNavs').mouseleave(function() {
+				$('.listNavs ul li').removeClass('liHover');
+				var _dom = $('.listNavs .listNavsFind');
+				_dom.hide().find('.cons').hide();
+				removeFilters();
+			})
+
+			function addFilters() {
+				$('.listNavs .mainsRightCon .cons .consDl').addClass('filters');
+			}
+
+			function removeFilters() {
+				$('.listNavs .mainsRightCon .cons .consDl').removeClass('filters');
+			}
+
+
+
+			$('.listNavs').on('mouseenter', '.mainsRightCon .cons .consDl', function() {
+				var _inx = $(this).index() + 1;
+				var _len = $(this).parent().find('.consDl').length / 5 + '';
+				if (_len.indexOf('.') > -1) {
+					_len = Number(_len.substring(0, _len.indexOf('.')))
+				}
+				_len = _len * 5
+				if (_inx > _len && _inx > 5) {
+					// $(this).find('.flo').css({'bottom':'130px'})
+				}
+				//console.log(_len)
+				var val = $(this).position().top;
+				addFilters();
+				$(this).removeClass('filters')
+				$(this).find('.flo').stop(true, false).slideToggle(500);
+			})
+			$('.listNavs').on('mouseleave', '.mainsRightCon .cons .consDl', function() {
+				removeFilters();
+				$(this).find('dd').css({
+					'border-bottom-color': '#b5b6b9'
+				})
+				$(this).find('.flo').stop(true, false).slideToggle(0);
+			})
+
+
+		})
+
+
+		function eachHtml(index, obj) {
+			html2 += '<div class="cons"><div class="dles" style="position: relative;">';
+			$.each(obj, function(inxs, eles) {
+				if (eles.children.length > 0) {
+					html2 +=
+						'<dl class="consDl"><span class="glyphicon glyphicon-chevron-up consDlSpans" aria-hidden="true"></span><dt style="z-index:-1;">';
+
+					if (eles.tblx == 1) {
+						if (eles.icon == null || eles.icon == 'null') {
+							html2 += '<img src="./js/' + valColors + '.png" />';
+						} else {
+							html2 += '<i class="' + eles.icon + '"></i>';
+						}
+
+					} else if (eles.tblx == 2) {
+						if (eles.img == null || eles.img == 'null') {
+							html2 += '<img src="./js/' + valColors + '.png" />';
+						} else {
+							html2 += '<img src="data:img/jpg;base64,' + eles.img + '" />';
+						}
+
+					} else {
+						html2 += '<img src="./js/' + valColors + '.png" />';
+					}
+					html2 += '</dt><dd onclick="findFloShowHide(this,1)">' + eles.gnmc + '</dd>';
+					eachHtmls(eles.children)
+
+
+				} else {
+					html2 += '<dl class="consDl"><a tabindex="-1" hrefs="' + eles.gnurl +
+						'" onclick="iframeFuns2(this)" target="menuFrame"><dt>';
+					if (eles.tblx == 1) {
+						if (eles.icon == null || eles.icon == 'null') {
+							html2 += '<img src="./js/' + valColors + '.png" />';
+						} else {
+							html2 += '<i class="' + eles.icon + '"></i>';
+						}
+					} else if (eles.tblx == 2) {
+						if (eles.img == null || eles.img == 'null') {
+							html2 += '<img src="./js/' + valColors + '.png" />';
+						} else {
+							html2 += '<img src="data:img/jpg;base64,' + eles.img + '" />';
+						}
+					} else {
+						html2 += '<img src="./js/' + valColors + '.png" />';
+					}
+					html2 += '</dt><dd>' + eles.gnmc + '</dd></a></dl>';
+				}
+
+			})
+			html2 += '</div></div>'
+		}
+
+		function eachHtmls(obj) {
+			html2 += '<div class="flo"><div class="bas">';
+			$.each(obj, function(inxs, eles) {
+				html2 += '<dl class="consDl2"><a tabindex="-1" hrefs="' + eles.gnurl +
+					'" onclick="iframeFuns2(this)" target="menuFrame"><dt>';
+				if (eles.tblx == 1) {
+					if (eles.icon == null || eles.icon == 'null') {
+						html2 += '<img src="./js/' + valColors + '.png" />';
+					} else {
+						html2 += '<i class="' + eles.icon + '"></i>';
+					}
+				} else if (eles.tblx == 2) {
+					if (eles.img == null || eles.img == 'null') {
+						html2 += '<img src="./js/' + valColors + '.png" />';
+					} else {
+						html2 += '<img src="data:img/jpg;base64,' + eles.img + '" />';
+					}
+				} else {
+					html2 += '<img src="./js/' + valColors + '.png" />';
+				}
+				html2 += '</dt><dd>' + eles.gnmc + '</dd></a></dl>';
+			})
+			html2 += '</div></div></dl>';
+		}
+
+		function eachLists(index, list, jc) {
+			$.each(lists, function(inx, ele) {
+				$.each(list, function(inxs, eles) {
+					if (ele.parent_nood.indexOf(eles.gnbh) > -1 && ele.jc == jc && ele.iskj == 0) {
+						ele.children = []
+						eles.children.push(ele)
+					}
+
+				})
+			})
+			list1[index].children = list
+		}
+
+		// 便利菜单end
+
+		function mainHeights() {
+			var wid = $('.bodyOverflow').width();
+			var hei, he1, he2, he3, he4, he5, he6, he7, he8, hebtn;
+			he1 = $('.bodyOverflow').height();
+			he2 = $('.listNavs').height();
+			hebtn = $('.btn-group').height();
+			if (hebtn == null || hebtn == 'null') {
+				hebtn = 25
+			} else {
+				hebtn + 25
+			}
+			if (he2 == null || he2 == 'null') {
+				he2 = 0
+			}
+			he3 = $('.listPosition').height();
+			if (he3 == null || he3 == 'null') {
+				he3 = 0
+			}
+			he4 = $('.search').height();
+			if (he4 == null || he4 == 'null') {
+				he4 = 0
+			} else {
+				if ($('#searchZk').text().trim() == '展开搜索') {
+					he4 = 0
+				}
+			}
+			he5 = 0;
+			he8 = $('.tab').height();
+			if (he8 == null || he8 == 'null') {
+				he8 = 0
+			}
+			he7 = $('.mainTablesNav').height();
+			if (he7 == null || he7 == 'null') {
+				he7 = 0
+			}
+			he6 = 0;
+			/* if(wid <= 1024){
+				he6 = 25;
+			}else if(wid <= 1366){
+				he6 = 40;
+			}else if(wid <= 1440){
+				he6 = 45;
+			}else if(wid <= 1680){
+				he6 = 50;
+			}else if(wid <= 1920){
+				he6 = 60;
+			}else{
+				he6 = 60;
+			} */
+			hei = he1 - he2 - he3 - he4 - he5 - he6 - he8 - he7 - hebtn;
+			$('.mainTables').height(hei);
+		}
+
+		function mainHeight() {
+			var wid = $('.bodyOverflow').width();
+			var hei, he1, he2, he3, he4, he5, he6, he7, he8, hebtn;
+			var iframe = window.top.document.getElementById("nav");
+			var iwindow = iframe.contentWindow;
+			he1 = iwindow.$('#iframes iframe').height();
+			he2 = $('.listNavs').height();
+			hebtn = $('.btn-group').height();
+			if (hebtn == null || hebtn == 'null') {
+				hebtn = 25
+			} else {
+				hebtn + 25
+			}
+			if (he2 == null || he2 == 'null') {
+				he2 = 0
+			}
+			he3 = $('.listPosition').height();
+			if (he3 == null || he3 == 'null') {
+				he3 = 0
+			}
+			he4 = $('.search').height();
+			if (he4 == null || he4 == 'null') {
+				he4 = 0
+			} else {
+				if ($('#searchZk').text().trim() == '展开搜索') {
+					he4 = 0
+				}
+			}
+			he5 = 0
+			he8 = $('.tab').height();
+			if (he8 == null || he8 == 'null') {
+				he8 = 0
+			}
+			he7 = $('.mainTablesNav').height();
+			if (he7 == null || he7 == 'null') {
+				he7 = 0
+			}
+			he6 = 0;
+			/* if(wid <= 1024){
+				he6 = 25;
+			}else if(wid <= 1366){
+				he6 = 40;
+			}else if(wid <= 1440){
+				he6 = 45;
+			}else if(wid <= 1680){
+				he6 = 50;
+			}else if(wid <= 1920){
+				he6 = 60;
+			}else{
+				he6 = 60;
+			} */
+			hei = he1 - he2 - he3 - he4 - he5 - he6 - he8 - he7 - hebtn;
+			$('.mainTables').height(hei);
+		}
+
+		function findFloShowHide(_this, blurs) {
+			var __this = $(_this).parent().find('.flo')
+			if (blurs == 1) {
+				__this.show();
+				$(_this).attr('onclick', 'findFloShowHide(this,2)');
+				$(_this).parent().find('.consDlSpans').css('transform', 'rotate(180deg)');
+			} else {
+				__this.hide();
+				$(_this).attr('onclick', 'findFloShowHide(this,1)');
+				$(_this).parent().find('.consDlSpans').css('transform', 'rotate(90deg)')
+			}
+		}
+
+		function hiddenClick() {
+			setTimeout(function() {
+				var leftLen = $('.leftNav .consDl').length;
+				if (leftLen > 0) {
+					var iframe = window.top.document.getElementById("nav");
+					var iwindow = iframe.contentWindow;
+					var ifDom = iwindow.$('#iframes iframe');
+					var pdSrc = ''
+					iwindow.$('#iframes iframe').each(function() {
+						var eachBlurs = $(this).attr('blurs')
+						if (eachBlurs == '0') {
+							pdSrc = $(this).attr('src')
+						}
+					})
+
+					var left = $('.leftNav dl')
+					var isBlur = true
+					left.each(function() {
+						var leftHrefs = $(this).children('a').attr('hrefs')
+						if (leftHrefs == pdSrc) {
+							isBlur = false
+						}
+					})
+
+					if (isBlur) {
+						eachLocal2($('.listNavs .listNavsFind .cons'), pdSrc, 0)
+						setTimeout(function() {
+							var text =
+								'<span style="margin-right:10px;" class="glyphicon glyphicon-tasks" aria-hidden="true"></span>' +
+								localStorage.getItem('leftNavTle')
+							$('.leftNavTles').html(text)
+							var html = '<div class="unfoldRetracts" onclick="unfoldRetract()">' +
+								'<img src="./js/lfs.png">' +
+								'</div>' +
+								'<div style="overflow:auto;width:100%;height:100%;">' +
+								localStorage.getItem('leftNav') +
+								'</div>'
+
+							$('.leftNav').html(html);
+							var lefts = $('.leftNav dl')
+							lefts.each(function() {
+								var leftHrefs = $(this).children('a').attr('hrefs')
+								if (leftHrefs == pdSrc) {
+									$(this).children('a').children('dt').addClass('dtxz');
+									$(this).children('a').children('dd').addClass('dtxz');
+								}
+							})
+						}, 100)
+					}
+				}
+			}, 1000)
+		}
+
+		function eachLocal2(then, srcs, inx) {
+			then.each(function(index, element) {
+				if ($(this).attr('class') == 'cons') {
+					var dom = $(this).children('.dles').children('.consDl')
+					if (dom.length != 0) {
+						eachLocal2(dom, srcs, index)
+					}
+				} else {
+					var abx = $(this).children('a');
+					if (abx.length != 0) {
+						var aVal = $(this).children('a').attr('hrefs');
+						if (srcs == aVal) {
+							var dhDomUl = $('.listNavs ul li').eq(inx + 1).attr('title')
+							var dhDomCons = $('.listNavs .listNavsFind .mainsRightCon .cons').eq(inx).children(
+								'.dles').html()
+							localStorage.setItem('leftNavSrc', srcs)
+							localStorage.setItem('leftNavTle', dhDomUl)
+							localStorage.setItem('leftNav', dhDomCons)
+						}
+					} else {
+						var dom = $(this).children('.flo').find('consDl2');
+						eachLocal2(dom, srcs, inx)
+					}
+				}
+			})
+		}
+
+
+		jQuery(document).ready(function() {
+			topmenu.init();
+			Drag.constructor('#JCsearch', '#JCsearchTle')
+		});
+	</script>
+	<!-- <ul class="nav nav-pills pull-right" id="bods"> -->
+	<div id="hiddenClicks" onclick="hiddenClick()"></div>
+	<div class="listNavs">
+
+		<ul>
+
+
+		</ul>
+
+		<div class="listNavsFind">
+
+			<div class="mainsRightCon">
+				<div class="cons">
+					<div class="dles" style="position: relative;">
+						<dl class="consDl">
+
+						</dl>
+
+
+					</div>
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+	</div>
+
+
+	<!-- 切换 -->
+	<div class="listPosition"
+		style="padding: 0 30px; position: relative; overflow: hidden;border-top: 1px solid #b5cdec;border-bottom: 1px solid #b5cdec;">
+		<div onclick="leftClick()" id="leftClicks" class="lfRt" style="left: 0;border-right: 1px solid #b5cdec;">
+			<i class="fa fa-backward"></i>
+		</div>
+		<div class="" style="width: 10000px; height: 100%; overflow: hidden;">
+			<ul id="switchs" name="switchs" style="">
+
+			</ul>
+		</div>
+		<div onclick="rightClick()" id="rigthId" class="lfRt" style="right: 0;border-left: 1px solid #b5cdec;">
+			<i class="fa fa-forward"></i>
+		</div>
+	</div>
+
+
+	<div id="form_Add" class="modal fade in" data-keyboard="false" tabindex="-1" data-backdrop="static"
+		style="width: 10%; height: 70%;">
+		<div class="modal-header modalHeader" style="padding-bottom: 0px; border: 0;">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="but_off"></button>
+			<div class="portlet box blue custom">
+				<div class="portlet-title" style="height: 41px;">
+					<div class="caption">
+						<h4 id="from_Add_title" class="modal-title customTitle">
+							<strong>常用菜单添加</strong>
+						</h4>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal-body">
+			<c:if test="${list !=null}">
+				<table id="tab" class="table table-bordered">
+					<thead>
+						<tr>
+							<th>菜单编号</th>
+							<th>菜单名称</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						<c:set var="listStr" value="${listStr}"></c:set>
+						<c:forEach items="${list}" var="l">
+							<tr>
+								<td>${l.gnbh }</td>
+								<td>${l.gnmc }</td>
+
+								<c:set var="gnbh" value="${l.gnbh }"></c:set>
+								<c:choose>
+									<c:when test="${fn:contains(listStr,gnbh)}">
+										<td style="color: green;">去除</td>
+									</c:when>
+									<c:otherwise>
+										<td style="color: red;">添加</td>
+									</c:otherwise>
+
+								</c:choose>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+			</c:if>
+			<div class="modal-footer">
+				<button id="btn_add_top" class="btn btn-primary">提交</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- </ul> -->

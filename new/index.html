@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<script src="index.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			function mynew(func, ...args) {
+			    const obj = {}
+			    obj.__proto__ = func.prototype
+			    let result = func.apply(obj, args)
+			    return result instanceof Object ? result : obj
+			}
+			function Person(name, age) {
+			    this.name = name;
+			    this.age = age;
+			}
+			Person.prototype.say = function () {
+			    console.log(this.name)
+			}
+			
+			let p = mynew(Person, "huihui", 123)
+			console.log(p) 
+			p.say() 
+		</script>
+	</body>
+</html>

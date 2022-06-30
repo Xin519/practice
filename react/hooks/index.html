@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+
+		<div id="root"></div>
+
+		<script type="text/javascript">
+			// const stateArray = []
+			// const setStateFn = []
+			// let stateIndex = 0
+
+			// function fn(index) {
+			// 	return function(value) {
+			// 		stateArray[index] = value
+			// 		stateIndex = 0
+			// 		runder()
+			// 	}
+			// }
+
+			// function useState(value) {
+			// 	const state = stateArray[stateIndex] = stateArray[stateIndex] || value
+			// 	const setState = setStateFn[stateIndex] = setStateFn[stateIndex] || fn(stateIndex)
+			// 	stateIndex++
+			// 	return [state, setState]
+			// }
+
+			// function useReducer(value, callBack) {
+			// 	const [state, setState] = useState(value)
+			// 	const dispath = e => {
+			// 		setState(callBack(state, e))
+			// 	}
+			// 	return [state, dispath]
+			// }
+
+			// function csFn(state, action) {
+			// 	switch (action.type) {
+			// 		case 'increment':
+			// 			return state + 1
+			// 		default: 
+			// 			return state
+			// 	}
+			// }
+
+			// let addFn
+			// function runder() {
+			// 	const [num, dispath] = useReducer(1, csFn)
+			// 	addFn = () => dispath({type: 'increment'})
+			// 	// const [num, setNum] = useState(0)
+			// 	// addFn = () => setNum(num + 1)
+			// 	const html = `<button type="button" onclick="addFn()" >+1</button> ${num}`
+			// 	document.getElementById('root').innerHTML = html
+			// }
+
+			// runder()
+
+			let isMount = true;
+			let workInProgressHook = null
+			const fiber = {
+				stateNode: App,
+				memoizedState: null
+			}
+
+			function useState(instalState) {
+				let hook
+				if (isMount) { // 初始化渲染
+					hook = {
+						memoizedState: instalState,
+						next: null,
+						quere: {
+							pending: null
+						}
+					}
+					if (!fiber.memoizedState) { // 第一个hook
+						fiber.memoizedState = hook
+					} else {
+						workInProgressHook.next = hook // 后面的hook
+					}
+					workInProgressHook = hook
+				} else { // updete 渲染
+					hook = workInProgressHook // 取到每次执行的hook
+					workInProgressHook = workInProgressHook.next
+				}
+
+				let baseState = hook.memoizedState
+
+				if (hook.quere.pending) {
+					let firstUpdate = hook.quere.pending.next
+
+					do {
+						const action = firstUpdate.action
+						baseState = action(baseState)
+						firstUpdate = firstUpdate.next
+					} while (firstUpdate !== hook.quere.pending.next)
+					hook.quere.pending = null
+				}
+
+				hook.memoizedState = baseState
+				return [baseState, dispatchAction.bind(null, hook.quere)]
+			}
+
+			function dispatchAction(quere, action) {
+				const update = {
+					action,
+					next: null
+				}
+				if (quere.pending === null) {
+					// 1 => 1 => 1
+					update.next = update // 环状链表
+				} else {
+					// 2 => 1 => 2     3 => 1 => 2 => 3 
+					update.next = quere.pending.next // 新创建的 指向最后一个
+					quere.pending.next = update // 最后一个指向新建的 
+				}
+				quere.pending = update
+				// console.log(quere.pending)
+				schedule()
+			}
+
+			function schedule() {
+				workInProgressHook = fiber.memoizedState
+				const app = fiber.stateNode()
+				isMount = false
+
+				return app
+			}
+
+
+			function App() {
+				
+				const [num, setNum] = useState(0)
+				
+				console.log(num)
+				
+				return {
+					onClick() {
+						setNum(num => num + 1)
+						// setNum(num => num + 2)
+						// setNum(num => num + 3)
+					}
+				}
+			}
+			
+			window.app = schedule()
+		</script>
+	</body>
+</html>
