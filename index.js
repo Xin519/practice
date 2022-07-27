@@ -256,28 +256,129 @@ Function.prototype.myApply = (then, args) => {
 Function.prototype.myBind = (then, ...arr) => {
 	if (typeof this !== 'function') throw new Error('this must be a function')
 	const self = this
-	let res = function (...args) {
+	let res = function(...args) {
 		const arg = [...args, ...arr]
-		return self.apply(this instanceof self ? this: then, arg)
+		return self.apply(this instanceof self ? this : then, arg)
 	}
-	if(this.prototype) {
+	if (this.prototype) {
 		res.prototype = Object.create(this.prototype)
 	}
-	
+
 	return res
 }
 
-Array.prototype.mySort = function(fn = (a,b)=>a-b) {
+Array.prototype.mySort = function(fn = (a, b) => a - b) {
 	const len1 = this.length
-	for(let i = 0; i < len1; i++) {
+	for (let i = 0; i < len1; i++) {
 		const len2 = this.length - i - 1
-		for(let j = 0; j < len2; j++ ) {
-			if(fn(this[j],this[j + 1]) > 0) {
+		for (let j = 0; j < len2; j++) {
+			if (fn(this[j], this[j + 1]) > 0) {
 				let temp = this[j]
 				this[j] = this[j + 1]
 				this[j + 1] = temp
 			}
 		}
 	}
+}
+
+// Object.create
+const mycreate = obj => {
+	function fn() {}
+	fn.prototype = obj
+	return new fn()
+}
+
+// 手写类型判断函数
+const getType = value => {
+	// 判断null
+	if (value === null) {
+		return value + ''
+	}
+	// 判断引用类型
+	if (typeof value === 'object') {
+		let valueClass = Object.prototype.toString.call(value),
+			type = valueClass.split(" ")[1].split("");
+		type.pop();
+		return type.join("").toLowerCase();
+	} else {
+		return typeof value
+	}
+}
+
+// 浅拷贝
+
+// Object.assign
+let target = {a: 1};
+let object2 = {b: 2};
+let object3 = {c: 3};
+Object.assign(target,object2,object3);  
+console.log(target);
+
+// 扩展运算符
+let obj1 = {a:1,b:{c:1}}
+let obj2 = {...obj1};
+obj1.a = 2;
+console.log(obj1); //{a:2,b:{c:1}}
+console.log(obj2); //{a:1,b:{c:1}}
+obj1.b.c = 2;
+console.log(obj1); //{a:2,b:{c:2}}
+console.log(obj2); //{a:1,b:{c:2}}
+
+// Array.prototype.slice
+let arr = [1,2,3,4];
+console.log(arr.slice()); // [1,2,3,4]
+console.log(arr.slice() === arr); //false
+
+// Array.prototype.concat
+let arr = [1,2,3,4];
+console.log(arr.concat()); // [1,2,3,4]
+console.log(arr.concat() === arr); //false
+
+// 
+const shallowCopy = e => {
+	if(!e && typeof e !== 'object') throw new Error('"url" is not "object"');
+	const obj = Array.isArray(e)? []: {}
+	for(let i in e) {
+		if(e.hasOwnProperty(i)) {
+			obj[i] = e[i]
+		}
+	}
+	return obj
+}
+
+// 深拷贝
+
+// JSON.stringify()
+let obj1 = {  a: 0,
+              b: {
+                 c: 0
+                 }
+            };
+let obj2 = JSON.parse(JSON.stringify(obj1));
+obj1.a = 1;
+obj1.b.c = 1;
+console.log(obj1); // {a: 1, b: {c: 1}}
+console.log(obj2); // {a: 0, b: {c: 0}}
+
+// 函数库lodash的_.cloneDeep方法
+var _ = require('lodash');
+var obj1 = {
+    a: 1,
+    b: { f: { g: 1 } },
+    c: [1, 2, 3]
+};
+var obj2 = _.cloneDeep(obj1);
+console.log(obj1.b.f === obj2.b.f);// false
+
+// 
+const deepCopy = e => {
+	if(!e && typeof e !== 'object') throw new Error('"url" is not "object"');
+	const obj = Array.isArray(e)? []: {},
+	for(let i in e) {
+		if(e.hasOwnProperty(i)) {
+			obj[i] = typeof e[i] === 'object'? deepCopy(e[i]): e[i]
+		}
+	}
+	return obj
 }
 
