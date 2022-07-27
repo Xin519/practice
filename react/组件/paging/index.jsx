@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, memo } from 'react'
 
-export default function Paging({ pageSize, total, pageCount, currentPage = 1, callback = e => e }) {
+function Paging({ pageSize, total, pageCount, currentPage = 1, callback = e => e }) {
 
     // const [myPageSize, setMyPageSize] = useState(pageSize); // 每页显示条目个数
     // const [myTotal, setMyTotal] = useState(total);  // 总条目数
@@ -103,6 +103,7 @@ export default function Paging({ pageSize, total, pageCount, currentPage = 1, ca
 
 }
 
+export default memo(Paging)
 /**
  * .pagingUl li{
  *  width:'30px'; height:'28px'; textAlign:'center'; lineHeight: '28px'; border:'1px #333'; float: 'left'

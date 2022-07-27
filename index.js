@@ -71,7 +71,7 @@ Array.prototype.myFind = function(callback) {
 Array.prototype.myEvery = function(callback) {
 	let len = this.length
 	for (let i = 0; i < len; i++) {
-		if (!callback(this[i], i, this)) false
+		if (!callback(this[i], i, this)) return false
 	}
 	return true
 }
@@ -80,7 +80,7 @@ Array.prototype.myEvery = function(callback) {
 Array.prototype.mySome = function(callback) {
 	let len = this.length
 	for (let i = 0; i < len; i++) {
-		if (callback(this[i], i, this)) true
+		if (callback(this[i], i, this)) return true
 	}
 	return false
 }
@@ -102,9 +102,9 @@ Array.prototype.myFlat = function(num = 1) { // num : '' / number / Infinity
 			}
 		}
 	}
-	
+
 	fn(this)
-	
+
 	return array
 }
 
@@ -144,61 +144,60 @@ function myIterator(arr) {
 	}
 }
 
-class myEventEmitter{
+class myEventEmitter {
 	constructor() {
 		this.eventMap = {}
 	}
-	
+
 	on(type, fn) {
 		if (!(fn instanceof Function)) {
 			throw new Error("哥 你错了 请传一个函数")
 		}
-		if(!this.eventMap[type]) {
+		if (!this.eventMap[type]) {
 			this.eventMap[type] = []
 		}
 		this.eventMap[type].push(fn)
 	}
-	
+
 	emit(type, params) {
-		if(this.eventMap[type]) {
+		if (this.eventMap[type]) {
 			this.eventMap[type].myForEach(fn => {
 				fn(params)
 			})
 		}
 	}
-	
+
 	off(type, fn) {
-		if(this.eventMap[type]) {
+		if (this.eventMap[type]) {
 			this.eventMap[type].splice(this.eventMap[type].indexOf(fn) >>> 0, 1)
 		}
 	}
-	
+
 	clear() {
 		this.eventMap = {}
 	}
 }
 
-function memoize (fn, then) {
+function memoize(fn, then) {
 	let obj = Object.create(null)
 	then = then || this
 	return (...key) => {
-		if(!obj(key)) {
+		if (!obj(key)) {
 			obj[key] = fn.apply(then, key)
 		}
 		return obj[key]
 	}
 }
 
-
 function curry1 = (fn, args = []) {
 	var then = this
 	var len = fn.length
 	var arg = args
-	
+
 	return () => {
 		const _arg = [...Array.prototype.slice.call(arguments), ...arg]
-		if(_arg.length < len) {
-			return curry1.apply(then ,fn, _arg)
+		if (_arg.length < len) {
+			return curry1.apply(then, fn, _arg)
 		}
 		return fn.apply(then, _arg)
 	}
@@ -211,34 +210,74 @@ const curry = (fn, arr = []) => (...args) => (
 function throttled(fn, delay = 500) {
 	let timer = null
 	let starttime = Date.now()
-	 return function() {
-		 const curtime = Date.now()
-		 const remaining = delay - (curtime - starttime)
-		 const then = this
-		 const args = arguments
-		 clearTimeout(timer)
-		 if(remaining <= 0) {
-			 fn.apply(then, args)
-			 starttime = Date.now()
-		 }else{
-			 timer = setTimeout(fn, remaining)
-		 }
-	 }
-}
-
-function debounce(fn, delay) {
-	let timeout 
 	return function() {
+		const curtime = Date.now()
+		const remaining = delay - (curtime - starttime)
 		const then = this
 		const args = arguments
-		if(timeout) clearTimeout(timeout)
-		 timeout = setTimeout(() => {
-			 fn.apply(then, ...args)
-		 }, delay)
+		clearTimeout(timer)
+		if (remaining <= 0) {
+			fn.apply(then, args)
+			starttime = Date.now()
+		} else {
+			timer = setTimeout(fn, remaining)
+		}
 	}
 }
 
+function debounce(fn, delay) {
+	let timeout
+	return function() {
+		const then = this
+		const args = arguments
+		if (timeout) clearTimeout(timeout)
+		timeout = setTimeout(() => {
+			fn.apply(then, ...args)
+		}, delay)
+	}
+}
 
+Function.prototype.myCall = (then, ...args) => {
+	const _then = then || window
+	_then.fn = this
+	const result = eval('_then.fn(...args)')
+	delete _then.fn
+	return result
+}
 
+Function.prototype.myApply = (then, args) => {
+	const _then = then || window
+	_then.fn = this
+	const result = eval('_then.fn(...args)')
+	delete _then.fn
+	return result
+}
 
+Function.prototype.myBind = (then, ...arr) => {
+	if (typeof this !== 'function') throw new Error('this must be a function')
+	const self = this
+	let res = function (...args) {
+		const arg = [...args, ...arr]
+		return self.apply(this instanceof self ? this: then, arg)
+	}
+	if(this.prototype) {
+		res.prototype = Object.create(this.prototype)
+	}
+	
+	return res
+}
+
+Array.prototype.mySort = function(fn = (a,b)=>a-b) {
+	const len1 = this.length
+	for(let i = 0; i < len1; i++) {
+		const len2 = this.length - i - 1
+		for(let j = 0; j < len2; j++ ) {
+			if(fn(this[j],this[j + 1]) > 0) {
+				let temp = this[j]
+				this[j] = this[j + 1]
+				this[j + 1] = temp
+			}
+		}
+	}
+}
 

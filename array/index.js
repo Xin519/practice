@@ -103,3 +103,18 @@ Array.prototype.myFlat = function (num = 1) { // num : '' / number / Infinity
 	fn(this)
 	return array
 }
+
+// 简单排序
+Array.prototype.mySort = function(fn = (a,b)=>a-b) {
+	const len1 = this.length
+	for(let i = 0; i < len1; i++) {
+		const len2 = this.length - i - 1
+		for(let j = 0; j < len2; j++ ) {
+			if(fn(this[j],this[j + 1]) > 0) {
+				let temp = this[j]
+				this[j] = this[j + 1]
+				this[j + 1] = temp
+			}
+		}
+	}
+}
