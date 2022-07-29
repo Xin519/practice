@@ -194,7 +194,7 @@ function curry1 = (fn, args = []) {
 	var len = fn.length
 	var arg = args
 
-	return () => {
+	return function () {
 		const _arg = [...Array.prototype.slice.call(arguments), ...arg]
 		if (_arg.length < len) {
 			return curry1.apply(then, fn, _arg)
