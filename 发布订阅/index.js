@@ -46,6 +46,12 @@ class myEventEmitter {
 	off(type, handler) {
 		if (this.eventMap[type]) {
 			this.eventMap[type].splice(this.eventMap[type].indexOf(handler) >>> 0, 1)
+			/*
+				这里是为了处理传入一个事件队列中不存在的函数时，不会意外的移除掉，我们知道 splice 的第一个参数是负数时，
+				会从数组的最后往前找。试想一下，如果传入一个不存在的函数给 off 方法，
+				indexOf 找不到会返回 -1 ，再调用 splice 就会将队列中最后一个函数删除掉了。而使用无符号右移，
+				-1 无符号右移的结果为 4294967295，这个数足够大，不会对原队列造成影响
+			*/
 		}
 	}
 }
