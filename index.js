@@ -144,7 +144,7 @@ function myIterator(arr) {
 	}
 }
 
-class myEventEmitter {
+class MyEventEmitter {
 	constructor() {
 		this.eventMap = {}
 	}
@@ -189,13 +189,13 @@ function memoize(fn, then) {
 	}
 }
 
-function curry1 = (fn, args = []) {
+function curry1 (fn, args = []) {
 	var then = this
 	var len = fn.length
 	var arg = args
 
 	return function () {
-		const _arg = [...Array.prototype.slice.call(arguments), ...arg]
+		const _arg = [...arguments, ...arg]
 		if (_arg.length < len) {
 			return curry1.apply(then, fn, _arg)
 		}
@@ -225,7 +225,7 @@ function throttled(fn, delay = 500) {
 	}
 }
 
-function debounce(fn, delay) {
+function debounce(fn, delay = 500) {
 	let timeout
 	return function() {
 		const then = this
@@ -336,7 +336,7 @@ console.log(arr.concat() === arr); //false
 
 // 
 const shallowCopy = e => {
-	if(!e && typeof e !== 'object') throw new Error('"url" is not "object"');
+	if(!e && typeof e !== 'object') throw new Error('"e" is not "object"');
 	const obj = Array.isArray(e)? []: {}
 	for(let i in e) {
 		if(e.hasOwnProperty(i)) {
@@ -372,7 +372,7 @@ console.log(obj1.b.f === obj2.b.f);// false
 
 // 
 const deepCopy = e => {
-	if(!e && typeof e !== 'object') throw new Error('"url" is not "object"');
+	if(!e && typeof e !== 'object') throw new Error('"e" is not "object"');
 	const obj = Array.isArray(e)? []: {},
 	for(let i in e) {
 		if(e.hasOwnProperty(i)) {
