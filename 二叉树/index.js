@@ -15,18 +15,37 @@ const tree = {
 // 前序遍历 
 // 从根开始 先左 后右
 
-function preorder (root) {
+// 递归实现
+function preorder1 (root) {
+	if(!root) return []
+	
 	const arr = []
 		
 	const fn = (node) => {
-        if(node) {
-            arr.push(node.val)
-            if(node.left) fn(node.left)
-            if(node.right) fn(node.right) 
-        }
+	    arr.push(node.val)
+	    if(node.left) fn(node.left)
+	    if(node.right) fn(node.right) 
 	}
 		
 	fn(root)
 		
 	return arr
 }
+
+// 栈方式
+function preorder1 (root) {
+	if(!root) return []
+	const arr = []
+	
+	let stack = [root]
+	
+	while(stack.length) {
+		const o = stack.pop()
+		arr.push(o.val)
+		
+		if(o.right) stack.push(o.right)
+		if(o.left) stack.push(o.left)
+	}
+	
+	return arr
+} 
