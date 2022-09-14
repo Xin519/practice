@@ -5,7 +5,7 @@
 // '[()' // false
 // '[(])' // false
 
-// 通过数组的压栈出栈的方式
+// 通过数组的压栈出栈的方式 ()
 function brackets(str) {
     const arr = [];
     const map = {
@@ -17,8 +17,9 @@ function brackets(str) {
         let s = str[i];
         if(map[s]) {
             arr.push(s);
-        }
-        else if(map[arr.at(-1)] === s) {
+        } else if(map[arr.at(-1)] === s) { 
+			// at() 方法接收一个整数值并返回该索引的项目，允许正数和负数。负整数从数组中的最后一个项目开始倒数。
+			// -1 最后一个 -2 倒数第二个 。。。
             arr.pop();
         }
     }
