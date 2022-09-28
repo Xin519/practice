@@ -38,6 +38,9 @@ function for2 (root) {
 	while(arr.length > 0) {
 		const o = arr.shift()
 		console.log(o)
+		o.children.forEach(i => {
+			arr.push(i)
+		})
 	}
 	
 }

@@ -32,7 +32,7 @@ const add = arr => {
 // 扁平化 reduce 函数迭代
 
 let arr = [1, [2, [3, 4]]];
-const flatten1 = (arr) {
+const flatten1 = (arr) => {
     return arr.reduce((prev, next) => {
         return prev.concat(Array.isArray(next) ? flatten(next) : next)
     }, [])
@@ -40,7 +40,7 @@ const flatten1 = (arr) {
 
 // 拓展运算符
 
-const flatten2 = (arr) {
+const flatten2 = (arr) => {
     while (arr.some(item => Array.isArray(item))) {
         arr = [].concat(...arr);
     }
